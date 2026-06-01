@@ -20,6 +20,9 @@ const titleByCase = {
   helloworld: 'Hello World',
   overlay: 'Overlay',
   distortion: 'Distortion',
+  'reveal-mask': 'Reveal Mask',
+  'reveal-video': 'Reveal Video',
+  'mask-effects': 'Fluid Mask Effects',
   'particles-trefoil': 'Simple Particles',
   'particles-2d': 'GPGPU Particles 2D',
   'particles-3d': 'GPGPU Particles 3D',
@@ -111,22 +114,6 @@ async function walk(dir) {
   return files
 }
 
-async function copyDirectoryFiltered(sourceDir, targetDir) {
-  await mkdir(targetDir, { recursive: true })
-  const entries = await readdir(sourceDir, { withFileTypes: true })
-  for (const entry of entries) {
-    if (entry.name === '.DS_Store') continue
-
-    const source = path.join(sourceDir, entry.name)
-    const target = path.join(targetDir, entry.name)
-    if (entry.isDirectory()) {
-      await copyDirectoryFiltered(source, target)
-    } else {
-      await cp(source, target)
-    }
-  }
-}
-
 async function resolveRelativeModule(fromFile, specifier, spec) {
   const base = path.resolve(path.dirname(fromFile), specifier)
   const candidates = [
@@ -151,18 +138,21 @@ async function resolveRelativeModule(fromFile, specifier, spec) {
 async function collectDependencies(entryFile, spec) {
   const pending = [entryFile]
   const files = new Set()
-  let usesBackdrops = false
+  const assets = new Set()
 
   while (pending.length > 0) {
     const file = pending.pop()
     if (!file || files.has(file)) continue
 
     files.add(file)
-    if (file === path.join(spec.sourceDir, `extras/backgrounds/defaults.${spec.extension}`)) {
-      usesBackdrops = true
-    }
 
     const source = await readFile(file, 'utf8')
+    // Public assets referenced by URL, e.g. '/backdrops/x.webp', '/videos/y.mp4'.
+    for (const match of source.matchAll(
+      /\/(?:backdrops|videos)\/[A-Za-z0-9_.\-/]+\.(?:webp|png|jpe?g|mp4|webm)/g,
+    )) {
+      assets.add(match[0])
+    }
     for (const match of source.matchAll(importSpecifierPattern)) {
       const importSpecifier = match[1]
       if (!importSpecifier.startsWith('.')) continue
@@ -180,7 +170,7 @@ async function collectDependencies(entryFile, spec) {
     }
   }
 
-  return { files: Array.from(files).sort(), usesBackdrops }
+  return { files: Array.from(files).sort(), assets: Array.from(assets).sort() }
 }
 
 async function copyDependencyFile(file, spec, playgroundSrcDir) {
@@ -561,7 +551,7 @@ async function writePlayground({ slug, entryFile }, spec) {
   const title = titleFromSlug(slug)
   const outputDir = path.join(spec.outputDir, id)
   const srcDir = path.join(outputDir, 'src')
-  const { files, usesBackdrops } = await collectDependencies(entryFile, spec)
+  const { files, assets } = await collectDependencies(entryFile, spec)
 
   await mkdir(srcDir, { recursive: true })
   await writeFile(
@@ -582,14 +572,19 @@ async function writePlayground({ slug, entryFile }, spec) {
     await copyDependencyFile(file, spec, srcDir)
   }
 
-  if (usesBackdrops) {
-    await copyDirectoryFiltered(
-      path.join(rootDir, 'public/backdrops'),
-      path.join(outputDir, 'public/backdrops'),
-    )
+  // Copy only the public assets the example actually references by URL
+  // (e.g. '/backdrops/slides-01.webp', '/videos/product_0.mp4').
+  for (const asset of assets) {
+    const relative = asset.replace(/^\//, '')
+    const from = path.join(rootDir, 'public', relative)
+    const to = path.join(outputDir, 'public', relative)
+    if (await exists(from)) {
+      await mkdir(path.dirname(to), { recursive: true })
+      await cp(from, to)
+    }
   }
 
-  return { id, slug, title, files: files.length, usesBackdrops }
+  return { id, slug, title, files: files.length }
 }
 
 async function discoverExamples(spec) {

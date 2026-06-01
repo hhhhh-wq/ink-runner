@@ -5,6 +5,9 @@ export type ExampleCase =
   | 'helloworld'
   | 'overlay'
   | 'distortion'
+  | 'reveal-mask'
+  | 'reveal-video'
+  | 'mask-effects'
   | 'particles-trefoil'
   | 'particles-2d'
   | 'particles-3d'
@@ -92,6 +95,24 @@ const caseSummaries: ExampleCaseSummary[] = [
       'Melt, refract, and smear your scene using the fluid velocity field. Includes 5 built-in styles: simple smear, RGB shift, chromatic split, water, and caustic lens.',
   },
   {
+    id: 'reveal-mask',
+    title: 'Fluid Reveal Mask',
+    description:
+      'Use the fluid density field as an organic mask: drag the pointer to reveal a hidden layer, with the velocity field rippling the reveal edge.',
+  },
+  {
+    id: 'reveal-video',
+    title: 'Reveal Video (Product)',
+    description:
+      'The reveal mask with two synced videos: x-ray a turntable product by dragging the pointer to uncover the moving internals under the moving body.',
+  },
+  {
+    id: 'mask-effects',
+    title: 'Fluid Mask Effects',
+    description:
+      'One image and a fluid mask with a switcher of looks: B/W to colour, blur to sharp, pixelize, halftone/riso, and a neon edge glow.',
+  },
+  {
     id: 'particles-2d',
     title: 'GPGPU Particles 2D',
     description:
@@ -156,6 +177,24 @@ const caseMeta: Record<
     guideLabel: 'Effects Guide',
     stageLabel: 'Fluid distortion canvas',
   },
+  'reveal-mask': {
+    shortTitle: 'Reveal Mask',
+    guideHref: '/tutorials/effects-guide/',
+    guideLabel: 'Effects Guide',
+    stageLabel: 'Fluid reveal mask canvas',
+  },
+  'reveal-video': {
+    shortTitle: 'Reveal Video',
+    guideHref: '/tutorials/effects-guide/',
+    guideLabel: 'Effects Guide',
+    stageLabel: 'Fluid reveal video product canvas',
+  },
+  'mask-effects': {
+    shortTitle: 'Mask Effects',
+    guideHref: '/tutorials/effects-guide/',
+    guideLabel: 'Effects Guide',
+    stageLabel: 'Fluid mask effects canvas',
+  },
   'particles-trefoil': {
     shortTitle: 'Simple Particles',
     guideHref: '/tutorials/particles-guide/',
@@ -199,6 +238,12 @@ const descriptions: Record<ExampleCase, string> = {
   overlay: 'Vibrant fluid paint and neon dye strokes composited over your scene.',
   distortion:
     'Realistic screen-space refraction, warping typography and objects using fluid momentum.',
+  'reveal-mask':
+    'Fluid density used as an organic mask that reveals a hidden layer under the pointer.',
+  'reveal-video':
+    'Fluid density used as a reveal mask between two synced product videos — an x-ray under the pointer.',
+  'mask-effects':
+    'Switchable mask treatments — B/W, blur, pixelize, halftone, edge glow — wiped back to the clean image by the fluid.',
   'particles-trefoil':
     "A procedural 3D knot dynamically stretched and displaced by the fluid's velocity field.",
   'particles-2d': 'Thousands of procedural 3D liquid droplets driven by a massive GPGPU swarm.',
@@ -239,6 +284,31 @@ const cardDescriptions: Record<
     tsl: {
       minimal: 'RenderPipeline output node refracts the scene pass.',
       full: 'All distortion styles on the WGSL solver with the same tuning surface.',
+    },
+  },
+  'reveal-mask': {
+    glsl: {
+      minimal: 'Two photos: drag to reveal the renovated room under the run-down one.',
+      full: 'Load two images, tune the reveal, edge and glow — an auto-playing demo with the full wow stack.',
+    },
+    tsl: {
+      minimal: 'The same two-photo reveal on the WGSL compute-backed solver.',
+    },
+  },
+  'reveal-video': {
+    glsl: {
+      minimal: 'Two synced videos: drag to x-ray the moving product and reveal its internals.',
+    },
+    tsl: {
+      minimal: 'The same two-video x-ray on the WGSL compute-backed solver.',
+    },
+  },
+  'mask-effects': {
+    glsl: {
+      full: 'One image, a fluid mask, and a switcher: B/W, blur, pixelize, halftone/riso and edge-glow looks.',
+    },
+    tsl: {
+      full: 'The same B/W, blur, pixelize, halftone and edge-glow looks via TSL nodes.',
     },
   },
   'particles-trefoil': {
@@ -297,12 +367,15 @@ const orderByCase: Record<ExampleCase, number> = {
   helloworld: 0,
   overlay: 1,
   distortion: 2,
-  'particles-trefoil': 5,
-  'particles-2d': 3,
-  'particles-3d': 4,
-  combined: 6,
-  mega: 7,
-  'fluid-text': 8,
+  'reveal-mask': 3,
+  'reveal-video': 4,
+  'mask-effects': 5,
+  'particles-2d': 6,
+  'particles-3d': 7,
+  'particles-trefoil': 8,
+  combined: 9,
+  mega: 10,
+  'fluid-text': 11,
 }
 
 function makeEntry(
@@ -362,6 +435,8 @@ export const examples: ExampleEntry[] = [
   makeEntry('glsl', 'minimal', 'helloworld', 'Hello World', 'Example 00'),
   makeEntry('glsl', 'minimal', 'overlay', 'Overlay', 'Minimal · Overlay'),
   makeEntry('glsl', 'minimal', 'distortion', 'Distortion', 'Minimal · Distortion'),
+  makeEntry('glsl', 'minimal', 'reveal-mask', 'Reveal Mask', 'Minimal · Reveal Mask'),
+  makeEntry('glsl', 'minimal', 'reveal-video', 'Reveal Video', 'Minimal · Reveal Video'),
   makeEntry(
     'glsl',
     'minimal',
@@ -386,6 +461,8 @@ export const examples: ExampleEntry[] = [
 
   makeEntry('glsl', 'full', 'overlay', 'Overlay', 'Example 01'),
   makeEntry('glsl', 'full', 'distortion', 'Distortion', 'Example 02'),
+  makeEntry('glsl', 'full', 'reveal-mask', 'Reveal Mask', 'Full · Reveal Mask'),
+  makeEntry('glsl', 'full', 'mask-effects', 'Fluid Mask Effects', 'Full · Mask Effects'),
   makeEntry('glsl', 'full', 'particles-trefoil', 'Simple Particles', 'Full · Simple Particles'),
   makeEntry('glsl', 'full', 'particles-2d', 'GPGPU Particles 2D', 'Example 03'),
   makeEntry('glsl', 'full', 'particles-3d', 'GPGPU Particles 3D', 'Example 04'),
@@ -393,6 +470,8 @@ export const examples: ExampleEntry[] = [
   makeEntry('tsl', 'minimal', 'helloworld', 'Hello World', 'TSL · Example 00'),
   makeEntry('tsl', 'minimal', 'overlay', 'Overlay', 'TSL · Minimal · Overlay'),
   makeEntry('tsl', 'minimal', 'distortion', 'Distortion', 'TSL · Minimal · Distortion'),
+  makeEntry('tsl', 'minimal', 'reveal-mask', 'Reveal Mask', 'TSL · Minimal · Reveal Mask'),
+  makeEntry('tsl', 'minimal', 'reveal-video', 'Reveal Video', 'TSL · Minimal · Reveal Video'),
   makeEntry(
     'tsl',
     'minimal',
@@ -418,6 +497,8 @@ export const examples: ExampleEntry[] = [
 
   makeEntry('tsl', 'full', 'overlay', 'Overlay', 'TSL · Example 01'),
   makeEntry('tsl', 'full', 'distortion', 'Distortion', 'Example 02 · TSL + WGSL'),
+  makeEntry('tsl', 'full', 'reveal-mask', 'Reveal Mask', 'TSL · Full · Reveal Mask'),
+  makeEntry('tsl', 'full', 'mask-effects', 'Fluid Mask Effects', 'TSL · Full · Mask Effects'),
   makeEntry(
     'tsl',
     'full',
@@ -439,9 +520,16 @@ export function getExampleBySlug(slug: string): ExampleEntry | undefined {
 }
 
 export function getExampleGroup(entry: ExampleEntry): ExampleEntry[] {
-  return examples
-    .filter((example) => example.engine === entry.engine && example.level === entry.level)
-    .sort((a, b) => a.order - b.order)
+  // One toggle per case for this engine: prefer the version at the current
+  // level, otherwise fall back to the case's only level — so minimal-only cases
+  // (Reveal Video) and full-only cases (Mask Effects) always appear.
+  const byCase = new Map<ExampleCase, ExampleEntry>()
+  for (const example of examples) {
+    if (example.engine !== entry.engine) continue
+    const current = byCase.get(example.caseId)
+    if (!current || example.level === entry.level) byCase.set(example.caseId, example)
+  }
+  return [...byCase.values()].sort((a, b) => a.order - b.order)
 }
 
 export function getExampleGroupLabel(entry: ExampleEntry): string {
@@ -456,8 +544,9 @@ export function getExampleGroupLinks(entry: ExampleEntry): ExampleGroupLink[] {
     const groupExamples = examples
       .filter((example) => example.engine === group.engine && example.level === group.level)
       .sort((a, b) => a.order - b.order)
-    const target =
-      groupExamples.find((example) => example.caseId === entry.caseId) ?? groupExamples[0]
+    // Only link a group that actually has THIS case — otherwise the menu would
+    // jump to an unrelated example (e.g. helloworld) instead of the equivalent.
+    const target = groupExamples.find((example) => example.caseId === entry.caseId)
 
     if (!target) return []
 
