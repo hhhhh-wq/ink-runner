@@ -101,18 +101,6 @@ const caseSummaries: ExampleCaseSummary[] = [
       'Use the fluid density field as an organic mask: drag the pointer to reveal a hidden layer, with the velocity field rippling the reveal edge.',
   },
   {
-    id: 'reveal-video',
-    title: 'Reveal Video (Product)',
-    description:
-      'The reveal mask with two synced videos: x-ray a turntable product by dragging the pointer to uncover the moving internals under the moving body.',
-  },
-  {
-    id: 'mask-effects',
-    title: 'Fluid Mask Effects',
-    description:
-      'One image and a fluid mask with a switcher of looks: B/W to colour, blur to sharp, pixelize, halftone/riso, and a neon edge glow.',
-  },
-  {
     id: 'particles-2d',
     title: 'GPGPU Particles 2D',
     description:
@@ -436,7 +424,6 @@ export const examples: ExampleEntry[] = [
   makeEntry('glsl', 'minimal', 'overlay', 'Overlay', 'Minimal · Overlay'),
   makeEntry('glsl', 'minimal', 'distortion', 'Distortion', 'Minimal · Distortion'),
   makeEntry('glsl', 'minimal', 'reveal-mask', 'Reveal Mask', 'Minimal · Reveal Mask'),
-  makeEntry('glsl', 'minimal', 'reveal-video', 'Reveal Video', 'Minimal · Reveal Video'),
   makeEntry(
     'glsl',
     'minimal',
@@ -462,7 +449,6 @@ export const examples: ExampleEntry[] = [
   makeEntry('glsl', 'full', 'overlay', 'Overlay', 'Example 01'),
   makeEntry('glsl', 'full', 'distortion', 'Distortion', 'Example 02'),
   makeEntry('glsl', 'full', 'reveal-mask', 'Reveal Mask', 'Full · Reveal Mask'),
-  makeEntry('glsl', 'full', 'mask-effects', 'Fluid Mask Effects', 'Full · Mask Effects'),
   makeEntry('glsl', 'full', 'particles-trefoil', 'Simple Particles', 'Full · Simple Particles'),
   makeEntry('glsl', 'full', 'particles-2d', 'GPGPU Particles 2D', 'Example 03'),
   makeEntry('glsl', 'full', 'particles-3d', 'GPGPU Particles 3D', 'Example 04'),
@@ -471,7 +457,6 @@ export const examples: ExampleEntry[] = [
   makeEntry('tsl', 'minimal', 'overlay', 'Overlay', 'TSL · Minimal · Overlay'),
   makeEntry('tsl', 'minimal', 'distortion', 'Distortion', 'TSL · Minimal · Distortion'),
   makeEntry('tsl', 'minimal', 'reveal-mask', 'Reveal Mask', 'TSL · Minimal · Reveal Mask'),
-  makeEntry('tsl', 'minimal', 'reveal-video', 'Reveal Video', 'TSL · Minimal · Reveal Video'),
   makeEntry(
     'tsl',
     'minimal',
@@ -498,7 +483,6 @@ export const examples: ExampleEntry[] = [
   makeEntry('tsl', 'full', 'overlay', 'Overlay', 'TSL · Example 01'),
   makeEntry('tsl', 'full', 'distortion', 'Distortion', 'Example 02 · TSL + WGSL'),
   makeEntry('tsl', 'full', 'reveal-mask', 'Reveal Mask', 'TSL · Full · Reveal Mask'),
-  makeEntry('tsl', 'full', 'mask-effects', 'Fluid Mask Effects', 'TSL · Full · Mask Effects'),
   makeEntry(
     'tsl',
     'full',
@@ -521,8 +505,8 @@ export function getExampleBySlug(slug: string): ExampleEntry | undefined {
 
 export function getExampleGroup(entry: ExampleEntry): ExampleEntry[] {
   // One toggle per case for this engine: prefer the version at the current
-  // level, otherwise fall back to the case's only level — so minimal-only cases
-  // (Reveal Video) and full-only cases (Mask Effects) always appear.
+  // level, otherwise fall back to the case's only level — so single-level cases
+  // (e.g. Hello World, Combined) always appear in the switcher.
   const byCase = new Map<ExampleCase, ExampleEntry>()
   for (const example of examples) {
     if (example.engine !== entry.engine) continue

@@ -258,60 +258,74 @@ const caseTutorials: Record<ExampleCase, CaseTutorial> = {
     ],
   },
   'reveal-mask': {
-    focus: 'Use the fluid density field as an organic mask that reveals a hidden layer under the pointer, with the velocity field rippling the reveal edge.',
+    focus: 'Use the fluid density field as an organic mask between two image layers — drag the pointer to uncover the hidden layer, with the velocity field rippling the reveal edge like liquid.',
     outcome: [
-      'Treat densityTexture.b as data — a mask — rather than something to draw.',
-      'Composite two image layers with mix(base, reveal, mask).',
-      'Use the velocity field to distort only the reveal boundary, keeping the interior crisp.',
+      'Read the fluid output as data: density (.b) is a mask, velocity (.rg) is a 2D offset — not something you draw.',
+      'Composite two cover-fitted layers with mix(base, reveal, mask).',
+      'Confine the velocity distortion to a thin edge band so the boundary ripples while the revealed interior stays crisp.',
+      'Get a glowing "wet rim" for free from the same band, and let the reveal heal back via density dissipation.',
     ],
     mentalModel:
-      'The fluid is not the picture; it is the stencil. Where the pointer paints density, the sealed top layer gives way to the hidden layer underneath, and the velocity field bends the boundary so the cut looks liquid instead of a hard circle.',
+      'The fluid is not the picture; it is the stencil. The solver writes a screen-space texture every frame — density in one channel, the velocity vector in two more. Where the pointer paints density, the sealed layer gives way to the hidden one underneath; the velocity bends the boundary so the cut looks liquid instead of a hard circle.',
     implementation: [
       {
-        title: 'Load two layers',
-        body: 'A base (sealed) image and a reveal (hidden) image. In the minimal version the base is just the desaturated reveal, so a single photo regains its colour.',
+        title: 'Render the fluid, then composite fullscreen',
+        body: 'The solver renders into a screen-space density/velocity texture. One fullscreen pass — a FullscreenPass + ShaderMaterial in WebGL, an output node in TSL — reads that texture together with the two image layers and writes the final pixel. No 3D scene is needed.',
       },
       {
-        title: 'Read density as the mask',
-        body: 'A smoothstep over densityTexture.b turns the painted fluid into a 0..1 reveal amount that mixes the two layers.',
+        title: 'Cover-fit both layers',
+        body: 'Each image is mapped with a background-size: cover UV so it fills the canvas without stretching; base and reveal can even be different sizes (the full demo lets you upload your own). Pass the image and canvas sizes as uniforms and crop the overflow.',
       },
       {
-        title: 'Ripple only the edge',
-        body: 'Offset the reveal UV by the velocity field weighted by an edge band, so the boundary shimmers like liquid while the revealed interior stays sharp.',
+        title: 'Density → reveal mask',
+        body: 'mask = smoothstep(lo, hi, density.b) turns the painted fluid into a 0..1 reveal amount; mix(base, reveal, mask) blends the sealed and hidden layers. Raising the lower threshold makes the reveal appear later, only under a denser stroke.',
+      },
+      {
+        title: 'Velocity → liquid edge + wet rim',
+        body: 'An edge band — mask·(1−mask), peaking at the boundary — is the trick. Offset the reveal UV by velocity·edge so only the boundary refracts (the interior stays sharp), then add reveal·edge·rim for a bright meniscus that traces the stroke.',
+      },
+      {
+        title: 'Heal-back and resize',
+        body: 'densityDissipation fades the painted density over time, so the reveal slowly closes on its own. On resize, keep the solver size, the view-size uniform and the renderer in sync.',
       },
     ],
     parameters: [
       {
-        name: 'densityDissipation',
-        role: 'How long the reveal lingers before it heals back.',
-        tune: 'Lower heals fast; near 0.99 the reveal stays open longer.',
+        name: 'splatRadius',
+        role: 'Width of the reveal stroke (how much density each pointer move injects).',
+        tune: 'Larger uncovers a bolder swath; smaller paints a fine line.',
       },
       {
-        name: 'splatRadius',
-        role: 'Width of the reveal stroke.',
-        tune: 'Larger uncovers a bolder swath; smaller paints a fine line.',
+        name: 'densityDissipation',
+        role: 'How long the reveal lingers before it heals back.',
+        tune: 'Lower heals fast (a quick scrub); near 0.99 it stays open much longer.',
       },
       {
         name: 'edge',
         role: 'Velocity refraction applied at the reveal boundary.',
-        tune: 'Gentle for a clean edge; higher for a watery, liquid boundary.',
+        tune: 'Gentle for a clean cut; higher for a watery, liquid boundary.',
       },
       {
         name: 'rim',
         role: 'Brightness of the wet line where liquid meets the sealed area.',
         tune: 'Raise for a glowing meniscus; set to zero to remove it.',
       },
+      {
+        name: 'velocityDissipation',
+        role: 'How long the flow keeps moving after a stroke.',
+        tune: 'Higher keeps it flowing like water; lower settles the reveal into the brush shape.',
+      },
     ],
     sourceFocus: [
-      'Loading and cover-fitting the two image layers.',
-      'The smoothstep that turns density into the reveal mask.',
-      'The edge-weighted velocity offset for the liquid boundary.',
-      'In the full version: image-pair switching, upload, and the bloom pass.',
+      'Loading and cover-fitting the two layers (TextureLoader for images, VideoTexture for clips).',
+      'The smoothstep that turns density.b into the 0..1 mask.',
+      'The edge band that confines the velocity offset to the boundary and drives the rim.',
+      'The full demo: the image-pair switcher and Upload controls. In TSL: the shared fluidReveal node and the LinearSRGB output that matches the WebGL look.',
     ],
     productionNotes: [
-      'Keep the velocity edge offset weighted to the boundary so the revealed content stays readable.',
-      'Darken or desaturate the sealed layer to make the revealed colour pop.',
-      'For two distinct images, match their aspect handling so the reveal lines up.',
+      'Keep the velocity offset weighted to the edge band, or the whole revealed area smears and becomes unreadable.',
+      'Frame the two layers identically (same camera and size) so the reveal lines up — for video, render the pair from one animation/turntable.',
+      'Tune densityDissipation for the feel: low for a wipe-and-restore scrub, high for a reveal that lingers.',
     ],
   },
   'reveal-video': {
@@ -883,6 +897,43 @@ pipeline.outputNode = simpleDistortion(
   sceneNode,
   fluid.densityNode,
   0.08,
+)`
+  }
+
+  if (entry.caseId === 'reveal-mask') {
+    return entry.engine === 'glsl'
+      ? `import { FluidSimulation, FullscreenPass, FULLSCREEN_VERTEX } from 'three-fluid-fx'
+
+const fluid = new FluidSimulation(renderer, { splatRadius: 0.0175, densityDissipation: 0.985 })
+attachPointerSplats(renderer.domElement, fluid)
+
+// density.b is the reveal mask, velocity.rg ripples the edge
+const composite = new ShaderMaterial({
+  vertexShader: FULLSCREEN_VERTEX,
+  fragmentShader: /* glsl */ \`
+    vec4 fl = texture2D(tFluid, vUv);
+    float mask = smoothstep(0.06, 0.32, fl.b);
+    float edge = mask * (1.0 - mask) * 4.0;          // thin boundary band
+    vec3 base = texture2D(tBase, imgUv).rgb;
+    vec3 reveal = texture2D(tReveal, imgUv - fl.rg * uEdge * edge).rgb;
+    gl_FragColor = vec4(mix(base, reveal, mask) + reveal * edge * uRim, 1.0);
+  \`,
+  uniforms: { tBase, tReveal, tFluid: { value: fluid.densityTexture }, uEdge, uRim },
+})
+const pass = new FullscreenPass(composite)`
+      : `import { FluidSimulation } from 'three-fluid-fx/tsl'
+import { texture, screenUV, smoothstep, mix, clamp, float } from 'three/tsl'
+
+const fluid = new FluidSimulation(renderer, { splatRadius: 0.0175, densityDissipation: 0.985 })
+attachPointerSplats(renderer.domElement, fluid)
+
+const fl = texture(fluid.densityNode).sample(screenUV)
+const mask = smoothstep(0.06, 0.32, fl.b)        // reveal amount
+const edge = mask.mul(float(1).sub(mask)).mul(4) // thin boundary band
+
+const reveal = texture(revealTex).sample(clamp(imgUv.sub(fl.rg.mul(uEdge).mul(edge)), 0, 1))
+pipeline.outputNode = mix(texture(baseTex).sample(imgUv), reveal, mask).add(
+  reveal.mul(edge).mul(uRim),
 )`
   }
 
