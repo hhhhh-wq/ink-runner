@@ -70,9 +70,9 @@ to get there — this library is for you.
     </td>
   </tr>
   <tr>
-    <td colspan="2" align="center">
+    <td width="50%" align="center">
       <a href="https://three-fluid-fx.artcreativecode.com/examples/tsl/minimal/fluid-text/">
-        <img src="https://three-fluid-fx.artcreativecode.com/assets/previews/fx-example-fluid-text.png" width="70%" alt="Fluid text effect" />
+        <img src="https://three-fluid-fx.artcreativecode.com/assets/previews/fx-example-fluid-text.png" width="100%" alt="Fluid text effect" />
       </a>
       <br/>
       <strong>Fluid text (DOM typography → CanvasTexture)</strong>
@@ -86,6 +86,23 @@ to get there — this library is for you.
       <a href="examples/tsl/minimal/fluid-text/main.ts">minimal source</a>
       ·
       <a href="examples/tsl/full/fluid-text/main.ts">full source</a>
+    </td>
+    <td width="50%" align="center">
+      <a href="https://three-fluid-fx.artcreativecode.com/examples/glsl/minimal/reveal-mask/">
+        <img src="https://three-fluid-fx.artcreativecode.com/assets/previews/fx-example-reveal-mask.png" width="100%" alt="Fluid reveal mask" />
+      </a>
+      <br/>
+      <strong>Fluid reveal mask (WebGL + WebGPU)</strong>
+      <br/>
+      Use the fluid density as an organic mask to reveal a hidden layer under the pointer; the velocity field ripples the edge.
+      <br/>
+      <a href="https://three-fluid-fx.artcreativecode.com/examples/glsl/minimal/reveal-mask/">live demo</a>
+      ·
+      <a href="https://three-fluid-fx.artcreativecode.com/tutorials/glsl/minimal/reveal-mask/">tutorial</a>
+      ·
+      <a href="examples/glsl/minimal/reveal-mask/main.ts">minimal source</a>
+      ·
+      <a href="examples/glsl/full/reveal-mask/main.ts">full source</a>
     </td>
   </tr>
 </table>
@@ -454,6 +471,7 @@ running, walkthroughs live at `/tutorials/<pipeline>/<level>/<slug>/`.
 - [Hello World source](examples/glsl/minimal/helloworld/main.ts) — smallest solver integration.
 - [Overlay source](examples/glsl/full/overlay/main.ts) — scene compositing, dye-aware strokes, and style controls.
 - [Distortion source](examples/glsl/full/distortion/main.ts) — UV refraction, chromatic styles, water, and caustics.
+- [Reveal Mask minimal source](examples/glsl/minimal/reveal-mask/main.ts) and [full source](examples/glsl/full/reveal-mask/main.ts) — fluid density as an organic reveal mask between two image layers; works in WebGL and WebGPU.
 - [Simple Particles source](examples/glsl/full/particles-trefoil/main.ts) — procedural particle displacement without GPGPU state.
 - [GPGPU Particles 2D source](examples/glsl/full/particles-2d/main.ts) and [GPGPU Particles 3D source](examples/glsl/full/particles-3d/main.ts) — persistent particle state driven by the fluid field.
 - [TSL Combined Demo source](examples/tsl/full/combined/main.ts) — combined WebGPU composition surface.
